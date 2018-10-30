@@ -1,0 +1,15 @@
+func MyFunc ( Param0, Param1, Param2 )
+{
+	return ( Param0 + Param1 ) * Param2;
+}
+
+func main ()
+{
+	var MyString;
+	var X;
+	
+	MyString = "This is a \"real\" XtremeScript script!";
+	X = 256;
+	
+	MyFunc ( MyString, 3.14159, X );
+}

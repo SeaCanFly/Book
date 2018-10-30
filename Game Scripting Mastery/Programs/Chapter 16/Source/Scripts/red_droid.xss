@@ -1,0 +1,149 @@
+/*
+
+	Project.
+
+		Lockdown
+
+	Abstract.
+
+		Red droid script. The red droid is the most advanced in the game, and moves towards the
+		player while firing.
+
+    Date Created.
+
+	    9.27.2002
+
+	Author.
+
+		Alex Varanese
+
+*/
+
+// ---- Host API Import -----------------------------------------------------------------------
+
+	host GetRandInRange ();
+
+	host MoveEnemyDroid ();
+	host GetEnemyDroidX ();
+	host GetEnemyDroidY ();
+	host GetEnemyDroidDir ();
+	host IsEnemyDroidAlive ();
+	host FireEnemyDroidGun ();
+
+	host GetPlayerDroidX ();
+	host GetPlayerDroidY ();
+	host GetPlayerDroidDir ();
+
+// ---- Constants -----------------------------------------------------------------------------
+
+	// Directions
+
+	var NORTH;
+	var SOUTH;
+	var EAST;
+	var WEST;
+
+// ---- Functions -----------------------------------------------------------------------------
+
+	/******************************************************************************************
+	*
+	*	GetPlayerFaceDir ()
+	*
+	*	Returns the direction in which an enemy droid should face in order to face the player.
+	*/
+
+	func GetPlayerFaceDir ( CurrDroid )
+	{
+		// The specified enemy's location, as well as the player's
+
+		var EnemyDroidX;
+		var EnemyDroidY;
+		var PlayerDroidX;
+		var PlayerDroidY;
+
+		// Get the locations
+
+		EnemyDroidX = GetEnemyDroidX ( CurrDroid );
+		EnemyDroidY = GetEnemyDroidY ( CurrDroid );
+		PlayerDroidX = GetPlayerDroidX ();
+		PlayerDroidY = GetPlayerDroidY ();
+
+		// Perform some simple checks to determine the optimal direction
+
+		if ( EnemyDroidX < PlayerDroidX )
+			return EAST;
+		else if ( EnemyDroidY < PlayerDroidY )
+			return SOUTH;
+		else if ( EnemyDroidX > PlayerDroidX )
+			return WEST;
+		else
+			return NORTH;
+
+		// Return north by default
+
+		return NORTH;
+	}
+
+// ---- Main ----------------------------------------------------------------------------------
+
+	func _Main ()
+	{
+		// Initialize our "constants" to values that correspond with Lockdown's internal
+		// direction constants
+
+		NORTH = 0;
+		EAST = 2;
+		SOUTH = 4;
+		WEST = 6;
+
+		// Droid index counter
+
+		var CurrDroid;
+		CurrDroid = 0;
+
+		// Enter the main loop
+
+		while ( true )
+		{
+			// If the droid is active, move it
+
+			if ( IsEnemyDroidAlive ( CurrDroid ) )
+			{
+				// Calculate a new path in the direction of the player
+
+				var Dir;
+				var Dist;
+				var Speed;
+
+				Dir = GetPlayerFaceDir ( CurrDroid );
+				Dist = GetRandInRange ( 3, 20 );
+				Speed = GetRandInRange ( 5, 12 );
+
+				// Move the droid along the path
+
+				while ( Dist > 0 )
+				{
+					// Occasionally fire the laser
+
+					if ( GetRandInRange ( 0, 8 ) == 1 )
+					{
+						// Make sure to face the player when doing so
+
+						Dir = GetPlayerFaceDir ( CurrDroid );
+						FireEnemyDroidGun ( CurrDroid );
+					}
+
+					// Increment the droid's position
+
+					MoveEnemyDroid ( CurrDroid, Dir, Speed );
+					Dist -= 1;
+				}
+			}
+
+			// Move to the next droid
+
+			CurrDroid += 1;
+			if ( CurrDroid > 7 )
+				CurrDroid = 0;
+		}
+	}

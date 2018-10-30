@@ -1,0 +1,71 @@
+/*
+
+	Project.
+
+		Lockdown
+
+	Abstract.
+
+		Blue droid script. The blue droid's strategy is simple random movement.
+
+    Date Created.
+
+	    9.27.2002
+
+	Author.
+
+		Alex Varanese
+
+*/
+
+// ---- Host API Imports ----------------------------------------------------------------------
+
+	host GetRandInRange ();
+	host MoveEnemyDroid ();
+	host GetEnemyDroidX ();
+	host GetEnemyDroidY ();
+	host IsEnemyDroidAlive ();
+
+// ---- Main ----------------------------------------------------------------------------------
+
+	func _Main ()
+	{
+		// Droid index counter
+
+		var CurrDroid;
+		CurrDroid = 0;
+
+		// Enter the main loop
+
+		while ( true )
+		{
+			// If the droid is alive, move it
+
+			if ( IsEnemyDroidAlive ( CurrDroid ) )
+			{
+				// Calculate a new direction, distance and speed
+
+				var Dir;
+				var Dist;
+				var Speed;
+
+				Dir = GetRandInRange ( 0, 7 );
+				Dist = GetRandInRange ( 3, 20 );
+				Speed = GetRandInRange ( 5, 12 );
+
+				// Move the droid along the path
+
+				while ( Dist > 0 )
+				{
+					MoveEnemyDroid ( CurrDroid, Dir, Speed );
+					Dist -= 1;
+				}
+			}
+
+			// Move to the next droid
+
+			CurrDroid += 1;
+			if ( CurrDroid > 7 )
+				CurrDroid = 0;
+		}
+	}

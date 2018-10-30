@@ -1,0 +1,51 @@
+/*
+	Rectangle drawing
+*/
+
+// Import our host API functions
+
+host PrintString ();
+host PrintNewline ();
+
+// Make the size of the rectangle global
+
+var g_XSize;
+var g_YSize;
+
+func _Main ()
+{
+	// Create some variables for tracing the shape
+
+	var X;
+	var Y;
+	
+	// Set the rectangle size to 32x16
+	
+	g_XSize = 32;
+	g_YSize = 16;
+	
+	// Y-loop
+	
+	Y = 0;
+	while ( Y < g_YSize )
+	{
+		// X-loop
+	
+		X = 0;
+		while ( X < g_XSize )
+		{
+			// Draw the next asterisk
+		
+			PrintString ( "*" );
+			
+			// Move to the next column
+			
+			X += 1;
+		}
+		
+		// Move to the next row
+		
+		PrintNewline ();
+		Y += 1;
+	}
+}

@@ -1,0 +1,153 @@
+/*
+
+	Project.
+
+		Lockdown
+
+	Abstract.
+
+		Grey droid script. This droid's logic consists of random movement and occasional shots
+		at the player.
+
+    Date Created.
+
+	    9.27.2002
+
+	Author.
+
+		Alex Varanese
+
+*/
+
+// ---- Host API Imports ----------------------------------------------------------------------
+
+	host GetRandInRange ();
+
+	host MoveEnemyDroid ();
+	host GetEnemyDroidX ();
+	host GetEnemyDroidY ();
+	host GetEnemyDroidDir ();
+	host IsEnemyDroidAlive ();
+	host FireEnemyDroidGun ();
+
+	host GetPlayerDroidX ();
+	host GetPlayerDroidY ();
+	host GetPlayerDroidDir ();
+
+// ---- Constants -----------------------------------------------------------------------------
+
+	// Directions
+
+	var NORTH;
+	var SOUTH;
+	var EAST;
+	var WEST;
+
+// ---- Main ----------------------------------------------------------------------------------
+
+	func _Main ()
+	{
+		// Initialize our "constants" to values that correspond with Lockdown's internal
+		// direction constants
+
+		NORTH = 0;
+		EAST = 2;
+		SOUTH = 4;
+		WEST = 6;
+
+		// Droid index counter
+
+		var CurrDroid;
+		CurrDroid = 0;
+
+		// Enter the main loop
+
+		while ( true )
+		{
+			// If the current droid is alive, handle its behavior
+
+			if ( IsEnemyDroidAlive ( CurrDroid ) )
+			{
+				// The current direction, distance and speed of the droid's movement
+
+				var Dir;
+				var Dist;
+				var Speed;
+
+				// The droid's X, Y location
+
+				var EnemyDroidX;
+				var EnemyDroidY;
+
+				// The player's X, Y location
+
+				var PlayerDroidX;
+				var PlayerDroidY;
+
+				// Generate a random path to follow
+
+				Dir = GetRandInRange ( 0, 7 );
+				Dist = GetRandInRange ( 3, 20 );
+				Speed = GetRandInRange ( 5, 12 );
+
+				//  Move the droid along the path
+
+				while ( Dist > 0 )
+				{
+					// Shoot occasionally
+
+					if ( GetRandInRange ( 0, 8 ) == 1 )
+					{
+						// Get the enemy's location
+
+						EnemyDroidX = GetEnemyDroidX ( CurrDroid );
+						EnemyDroidY = GetEnemyDroidY ( CurrDroid );
+
+						// Get the player's location
+
+						PlayerDroidX = GetPlayerDroidX ();
+						PlayerDroidY = GetPlayerDroidY ();
+
+						// Use these locations to face the droid in the proper direction when
+						// shooting
+
+						if ( EnemyDroidX < PlayerDroidX )
+						{
+							Dir = EAST;
+							MoveEnemyDroid ( CurrDroid, Dir, 0 );
+						}
+						else if ( EnemyDroidY < PlayerDroidY )
+						{
+							Dir = SOUTH;
+							MoveEnemyDroid ( CurrDroid, Dir, 0 );
+						}
+						else if ( EnemyDroidX > PlayerDroidX )
+						{
+							Dir = WEST;
+							MoveEnemyDroid ( CurrDroid, Dir, 0 );
+						}
+						else if ( EnemyDroidY < PlayerDroidY )
+						{
+							Dir = NORTH;
+							MoveEnemyDroid ( CurrDroid, Dir, 0 );
+						}
+
+						// Fire the laser
+
+						FireEnemyDroidGun ( CurrDroid );
+					}
+
+					// Increment the droid's position
+
+					MoveEnemyDroid ( CurrDroid, Dir, Speed );
+					Dist -= 1;
+				}
+			}
+
+			// Move to the next droid
+
+			CurrDroid += 1;
+			if ( CurrDroid > 7 )
+				CurrDroid = 0;
+		}
+	}

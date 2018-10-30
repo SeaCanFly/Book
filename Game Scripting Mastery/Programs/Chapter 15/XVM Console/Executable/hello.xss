@@ -1,0 +1,10 @@
+/*
+	Hello, world!
+*/
+
+host PrintString ();
+
+func _Main ()
+{
+	PrintString ( "Hello, world!" );
+}

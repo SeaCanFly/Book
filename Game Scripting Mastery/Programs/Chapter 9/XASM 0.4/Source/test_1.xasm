@@ -1,0 +1,54 @@
+; Project.
+
+;	XVM Prototype
+
+; Abstract.
+
+;	Creats a "pulsating" loop by fluxuating the duration of a pause that is performed at
+;	each iteration. Looks kinda cool when you watch it run in the XVM prototype.
+
+; Date Created.
+
+;	7.29.2002
+
+; Author.
+
+;	Alex Varanese
+
+; ---- Use the default stack size
+	
+; ---- Create a global (just to test them)
+	
+	Var		g_Dur				; The current duration of the pause
+	Var		g_Step				; The duration fluxuation factor
+	
+; ---- Define an infinte loop function
+
+Func Loop
+{
+	Mov		g_Dur, 0			; Set the initial duration to zero
+	Mov		g_Step, 10			; Step the step to something noticable
+
+	LoopStart:					; Start the loop
+	
+		Add		g_Dur, g_Step		; Fluxuate the speed
+		
+		JGE		g_Dur, 400, Negate	; If the current speed is above or
+		JLE		g_Dur, 0, Negate	; below the extents, flip the sign of
+		Jmp		Skip			; the step
+		
+	Negate:
+		Neg		g_Step
+		
+	Skip:
+		Pause		g_Dur			; Perform the pause
+	
+	Jmp		LoopStart			; Loop infinitely
+}
+	
+; ---- Define a _Main Function
+
+Func _Main						; We'll need a _Main function for this
+{							; to work in the XVM prototype
+	Call		Loop				; Call the Loop function
+}

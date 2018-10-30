@@ -1,0 +1,42 @@
+;	Project.
+
+;		Lockdown
+
+;	Abstract.
+
+;		Blue droid script. The blue droid's strategy is simple random movement.
+
+;	Date Created.
+
+;		9.27.2002
+
+;	Author.
+
+;		Alex Varanese
+
+; ---- Directives -----------------------------------------------------------------------------
+
+	SetPriority 20
+
+; ---- Main -----------------------------------------------------------------------------------
+
+	Func _Main
+	{
+		; Enter the main loop
+	
+		LoopStart:
+		
+			; Get a random number between 0 and 50, inclusive
+
+			Push		0
+			Push		50
+			CallHost	GetRandInRange
+			
+			; If the number was 1, flicker the lights
+			
+			JNE		_RetVal, 1, SkipToggleLights
+			CallHost	ToggleRoomLights
+		SkipToggleLights:
+
+		Jmp		LoopStart
+	}

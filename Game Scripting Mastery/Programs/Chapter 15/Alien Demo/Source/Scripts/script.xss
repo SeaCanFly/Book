@@ -1,0 +1,255 @@
+/*
+	Project.
+
+		XtremeScript Bouncing Head Demo
+
+	Abstract.
+
+		Handles most of the logic behind the alien head demo, but does so in
+		XtremeScript rather than C.
+
+	Date Created.
+
+		9.17.2002
+
+	Author.
+
+		Alex Varanese
+*/
+
+// ---- Host API Imports ----------------------------------------------------------------------
+
+	host GetRandomNumber ();
+	host BlitBG ();
+	host BlitSprite ();
+	host BlitFrame ();
+	host GetTimerState ();
+
+// ---- Constants -----------------------------------------------------------------------------
+
+	// XASM doesn't support constants, so we'll just declare globals that look like them,
+	// and initialize them in Init () since we can't do it here
+
+	var ALIEN_COUNT;                                // Number of aliens onscreen
+
+	var MIN_VEL;                                    // Minimum velocity
+	var MAX_VEL;                                    // Maximum velocity
+
+	var ALIEN_WIDTH;                                // Width of the alien sprite
+	var ALIEN_HEIGHT;                               // Height of the alien sprite
+	var HALF_ALIEN_WIDTH;                           // Half of the sprite width
+	var HALF_ALIEN_HEIGHT;                          // Half of the sprite height
+
+	var ALIEN_FRAME_COUNT;                          // Number of frames in the animation
+	var ALIEN_MAX_FRAME;                            // Maximum valid frame
+
+	var ANIM_TIMER_INDEX;                           // Animation timer index
+	var MOVE_TIMER_INDEX;                           // Movement timer index
+
+// ---- Global Variables ----------------------------------------------------------------------
+
+	// We need space for 12 aliens, each of which requires an X, Y location, X and Y
+	// velocities, and a spin direction. This is 5 fields per element, so 5 * 12 = 60
+
+	var Aliens [ 60 ];								// Sprites
+
+	var CurrAnimFrame;								// Current frame of the alien animation
+
+// ---- Functions -----------------------------------------------------------------------------
+
+	/*
+		Initializes the demo
+	*/
+
+	func Init ()
+	{
+		// ---- Initialize our "constants"
+
+		ALIEN_COUNT = 12;
+
+		MIN_VEL = 4;
+		MAX_VEL = 16;
+
+		ALIEN_WIDTH = 128;
+		ALIEN_HEIGHT = 128;
+		HALF_ALIEN_WIDTH = ALIEN_WIDTH / 2;
+		HALF_ALIEN_HEIGHT = ALIEN_WIDTH / 2;
+
+		ALIEN_FRAME_COUNT = 32;
+		ALIEN_MAX_FRAME = ALIEN_FRAME_cOUNT - 1;
+
+		ANIM_TIMER_INDEX = 0;
+		MOVE_TIMER_INDEX = 1;
+
+		// ---- Initialize the globals
+
+		CurrAnimFrame = 0;
+
+		// ---- Declare locals
+
+		// Counters
+
+		var CurrAlienIndex;
+		var CurrArrayIndex;
+
+		// Alien element fields
+
+		var X;
+		var Y;
+		var XVel;
+		var YVel;
+		var SpinDir;
+
+		// ---- Initialize each alien
+
+		CurrAlienIndex = 0;
+		CurrArrayIndex = 0;
+
+		while ( CurrAlienIndex < ALIEN_COUNT )
+		{
+			// Set the X, Y location
+
+			X = GetRandomNumber ( 0, 639 - ALIEN_WIDTH );
+			Y = GetRandomNumber ( 0, 479 - ALIEN_HEIGHT );
+
+			// Set the X, Y velocity
+
+			XVel = GetRandomNumber ( MIN_VEL, MAX_VEL );
+			YVel = GetRandomNumber ( MIN_VEL, MAX_VEL );
+
+			// Set the spin direction
+
+			SpinDir = GetRandomNumber ( 0, 2 );
+
+			// Write the values to the array
+
+			Aliens [ CurrArrayIndex ] = X;
+			Aliens [ CurrArrayIndex + 1 ] = Y;
+			Aliens [ CurrArrayIndex + 2 ] = XVel;
+			Aliens [ CurrArrayIndex + 3 ] = YVel;
+			Aliens [ CurrArrayIndex + 4 ] = SpinDir;
+
+			// Move to the next alien
+
+			CurrAlienIndex += 1;
+			CurrArrayIndex += 5;
+		}
+	}
+
+	/*
+		Handles the current frame
+	*/
+
+	func HandleFrame ()
+	{
+		// ---- Declare locals
+
+		// Counters
+
+		var CurrAlienIndex;
+		var CurrArrayIndex;
+
+		// Alien element fields
+
+		var X;
+		var Y;
+		var XVel;
+		var YVel;
+		var SpinDir;
+
+		// Animation
+
+		var FinalAnimFrame;
+
+		// ---- Blit the background image
+
+		BlitBG ();
+
+		// ---- Blit each sprite
+
+		CurrAlienIndex = 0;
+		CurrArrayIndex = 0;
+
+		while ( CurrAlienIndex < ALIEN_COUNT )
+		{
+			// Get the X, Y location
+
+			X = Aliens [ CurrArrayIndex ];
+			Y = Aliens [ CurrArrayIndex + 1 ];
+
+			// Get the spin direction and determine the final frame for this sprite based on it
+
+			SpinDir = Aliens [ CurrArrayIndex + 4 ];
+
+			if ( SpinDir )
+				FinalAnimFrame = ALIEN_MAX_FRAME - CurrAnimFrame;
+			else
+				FinalAnimFrame = CurrAnimFrame;
+
+			// Blit the sprite
+
+			BlitSprite ( FinalAnimFrame, X, Y );
+
+			// Move to the next alien
+
+			CurrAlienIndex += 1;
+			CurrArrayIndex += 5;
+		}
+
+		// Blit the completed frame to the screen
+
+		BlitFrame ();
+
+		// Increment the current frame in the animation
+
+		if ( GetTimerState ( ANIM_TIMER_INDEX ) )
+		{
+			CurrAnimFrame += 1;
+			if ( CurrAnimFrame >= ALIEN_FRAME_COUNT )
+				CurrAnimFrame = 0;
+		}
+
+		// Move the sprites along their paths
+
+		if ( GetTimerState ( MOVE_TIMER_INDEX ) )
+		{
+			CurrAlienIndex = 0;
+			CurrArrayIndex = 0;
+
+			while ( CurrAlienIndex < ALIEN_COUNT )
+			{
+				// Get the X, Y location
+
+				X = Aliens [ CurrArrayIndex ];
+				Y = Aliens [ CurrArrayIndex + 1 ];
+
+				// Get the X, Y velocities
+
+				XVel = Aliens [ CurrArrayIndex + 2 ];
+				YVel = Aliens [ CurrArrayIndex + 3 ];
+
+				// Increment the paths of the aliens
+
+				X += XVel;
+				Y += YVel;
+				Aliens [ CurrArrayIndex ] = X;
+				Aliens [ CurrArrayIndex + 1 ] = Y;
+
+				// Check for wall collisions
+
+				if ( ( X > 640 - HALF_ALIEN_WIDTH ) || ( X < -HALF_ALIEN_WIDTH ) )
+					XVel = -XVel;
+
+				if ( ( Y > 480 - HALF_ALIEN_HEIGHT ) || ( Y < -HALF_ALIEN_HEIGHT ) )
+					YVel = -YVel;
+
+				Aliens [ CurrArrayIndex + 2 ] = XVel;
+				Aliens [ CurrArrayIndex + 3 ] = YVel;
+
+				// Move to the next alien
+
+				CurrAlienIndex += 1;
+				CurrArrayIndex += 5;
+			}
+		}
+	}

@@ -1,0 +1,74 @@
+PROGRAMS
+
+GAME SCRIPTING MASTERY
+-----------------------------------------------------------------------------------------------
+
+	This folder contains the entire collection of example programs for Game Scripting
+	Mastery. Each example comes in both source and executable form, and source code is
+	always accompanied by project (.DSP) and workspace (.DSW) files for Microsoft Visual
+	C++ 6.0
+	
+	This folder contains a subfolder for every chapter that includes executable code and
+	demos. Within those folders are further subfolders for each of that chapter's programs.
+	Each chapter's folder contains a Read Me file similar to this one that provides a brief
+	summary of its covered topics, and more importantly, of the example programs. Please
+	make sure to read them for specific compiling instructions and directions.
+	
+	In addition to this per-chapter information, all Read Me files contain the GENERAL
+	PROGRAM NOTES section listed below. This section does not change from one chapter to
+	the next, so please remember that the information it contains does not necessarily
+	relate to that chapter's programs. It provides a general overview of compiling
+	instructions for the book's DirectX-based graphical programs.
+	
+	I strongly encourage you to browse, study and play with these examples-- it's the best
+	way to become familiar with the what the book teaches, and will help complete your
+	training as a scripting master. Have fun!
+	
+GENERAL PROGRAM NOTES
+-----------------------------------------------------------------------------------------------
+
+	Each project, example or demo in the book comes in both source code form and executable
+	form. All of the book's source was compiled with Microsoft Visual C++ 6.0, so the
+	project (.DSP) and workspace (.DSW) files are included as well. Source code is always
+	found in the Source/ directory, and executables are always found under Executable/.
+	
+	It's always a good idea to make a copy of the source on your hard drive. This can be
+	done by simply dragging its directory to the destination of your choice. I suggest
+	copying the entire Programs/ directory into a safe place on your hard drive, so you'll
+	have the entire book's content available at all times.
+
+	Any program that uses graphics or sound is written with my Wrappuh library, which wraps
+	the functionality of the Win32 API and DirectX. This is done to save you the trouble of
+	sifting through pages of DX/Win32-specific code, but you still have to configure your
+	compiler properly in order to compile Wrappuh programs. Specifically, MAKE SURE of the
+	following:
+
+		- wrappuh.cpp, wrappuh.h and keymap.h are included in your project.
+		- The DirectX export libraries (.LIB) are included with your project
+		- Your compiler's path settings include the path to the DirectX SDK.
+		- Your version of DirectX is up to date; I recommend 8.1 (the latest at the
+		  time of this writing). As a general rule of thumb, install the version
+		  included on the CD (unless you already have a more recent one).
+		- Include the WinMM.lib library. This can be found in the Lib/ directory of
+		  your MSVC++ installation. This file contains a few generic multimedia
+		  functions needed by the Wrappuh API-- programs will NOT compile without
+		  this file!
+
+	Remember, Wrappuh hides the details of Windows and DirectX, but it doesn't port
+	anything. Demos that use graphics and sound will still require a Win32/DX platform to
+	run properly.
+	
+	NOTE: Not all chapters require the Wrappuh library as many example programs are text-
+	      based console applications. The above directions ONLY apply to graphical
+	      programs, which will be clearly marked in the first section of this document. If
+	      an example program is a console application, it will NOT require DirectX or the
+	      Wrappuh API, and can be compiled normally. These programs will also most likely
+	      compile in non-MSVC++ compilers or even alternate platforms, unless otherwise
+	      noted, although I can't make any guarantees.
+
+-----------------------------------------------------------------------------------------------
+
+Have fun!
+
+-- Alex
+   alex@amvbooks.com

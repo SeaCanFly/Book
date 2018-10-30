@@ -1,0 +1,61 @@
+; Project.
+
+;	XVM Prototype
+
+; Abstract.
+
+;	Simple test script.
+
+; Date Created.
+
+;	7.29.2002
+
+; Author.
+
+;	Alex Varanese
+
+; ---- Set the stack size
+	
+	SetStackSize 512
+	
+; ---- Define a _Main Function
+
+Func _Main
+{
+	; ---- Perform a simple loop
+
+	Var		Counter				; Create a counter
+	
+	Mov		Counter, 16			; Iterate 16 times
+	
+	LoopStart0:
+		
+		Dec		Counter
+		
+	JGE		Counter, 0, LoopStart0
+	
+	; ---- Wait a while
+	
+	Var		Dur				; Store the duration in a variable
+	Mov		Dur, 2000
+	Pause		Dur
+	
+	; ---- Enter an infinite loop that executes slowly, and do some random stuff in it
+	
+	Var		X				; Create some variables
+	Var		Y
+	Var		Z
+	
+	Mov		X, 0				; Initialize the variables
+	Mov		Y, 0
+	
+	LoopStart1:					; Create a label to enclose the loop
+	
+		Inc		X			; Do some random variable manipulation
+		Add		Y, X
+		Mov		Z, X
+		Div		Z, Y
+		Pause		100			; Pause breifly so we can watch it
+	
+	Jmp		LoopStart1			; Make an unconditional jump
+}

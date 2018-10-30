@@ -1,0 +1,346 @@
+;	Project.
+
+;		XtremeScript Bouncing Head Demo
+	
+;	Abstract.
+
+;		Handles most of the logic behind the alien head demo, but does so in XVM
+;		assembly rather than C.
+
+;	Date Created.
+
+;		9.17.2002
+
+;	Author.
+
+;		Alex Varanese
+
+; ---- Constants ------------------------------------------------------------------------------
+
+	; XASM doesn't support constants, so we'll just declare globals that look like them,
+	; and initialize them in Init () since we can't do it here
+
+	Var ALIEN_COUNT                                 ; Number of aliens onscreen
+
+	Var MIN_VEL                                     ; Minimum velocity
+	Var MAX_VEL                                     ; Maximum velocity
+
+	Var ALIEN_WIDTH                                 ; Width of the alien sprite
+	Var ALIEN_HEIGHT                                ; Height of the alien sprite
+	Var HALF_ALIEN_WIDTH                            ; Half of the sprite width
+	Var HALF_ALIEN_HEIGHT                           ; Half of the sprite height
+
+	Var ALIEN_FRAME_COUNT                           ; Number of frames in the animation
+	Var ALIEN_MAX_FRAME                             ; Maximum valid frame
+	
+	Var ANIM_TIMER_INDEX                            ; Animation timer index
+	Var MOVE_TIMER_INDEX                            ; Movement timer index
+
+; ---- Global Variables -----------------------------------------------------------------------
+
+	; We need space for 12 aliens, each of which requires an X, Y location, X and Y
+	; velocities, and a spin direction. This is 5 fields per element, so 5 * 12 = 60
+
+	Var Aliens [ 60 ]                               ; Sprites
+	
+	Var CurrAnimFrame                               ; Current frame in the alien animation
+	
+; ---- Functions ------------------------------------------------------------------------------
+
+	; ---- Initializes the demo
+
+	Func Init
+	{
+		; ---- Declare locals
+	
+		; Counters
+
+		Var CurrAlienIndex
+		Var CurrArrayIndex
+
+		; Alien array element fields
+		
+		Var X
+		Var Y
+		Var XVel
+		Var YVel
+		Var SpinDir
+	
+		; ---- Initialize the "constants"
+	
+		Mov		ALIEN_COUNT, 12
+		
+		Mov		MIN_VEL, 4
+		Mov		MAX_VEL, 16
+		
+		Mov		ALIEN_WIDTH, 128
+		Mov		ALIEN_HEIGHT, 128
+		Mov		HALF_ALIEN_WIDTH, ALIEN_WIDTH
+		Div		HALF_ALIEN_WIDTH, 2
+		Mov		HALF_ALIEN_HEIGHT, ALIEN_HEIGHT
+		Div		HALF_ALIEN_HEIGHT, 2
+		
+		Mov		ALIEN_FRAME_COUNT, 32
+		Mov		ALIEN_MAX_FRAME, ALIEN_FRAME_COUNT
+		Dec		ALIEN_MAX_FRAME
+		
+		Mov		ANIM_TIMER_INDEX, 0
+		Mov		MOVE_TIMER_INDEX, 1
+		
+		; ---- Initialize the globals
+		
+		; Set the current animation frame to zero
+		
+		Mov		CurrAnimFrame, 0
+		
+		; ---- Initialize the alien array
+		
+		Mov		CurrAlienIndex, 0	
+		Mov		CurrArrayIndex, 0
+		
+		InitLoopStart:
+		
+			; ---- Initialize the current alien
+			
+			; Set the X, Y location
+
+			Push		0
+			Mov		X, 639
+			Sub		X, HALF_ALIEN_WIDTH
+			Push		X
+			CallHost	GetRandomNumber
+			Mov		X, _RetVal
+
+			Push		0
+			Mov		Y, 479
+			Sub		Y, HALF_ALIEN_HEIGHT
+			Push		Y
+			CallHost	GetRandomNumber
+			Mov		Y, _RetVal
+			
+			Mov		Aliens [ CurrArrayIndex ], X
+			Inc		CurrArrayIndex
+			Mov		Aliens [ CurrArrayIndex ], Y
+			Inc		CurrArrayIndex
+			
+			; Set the X and Y velocities
+			
+			Push		MIN_VEL
+			Push		MAX_VEL
+			CallHost	GetRandomNumber
+			Mov		XVel, _RetVal
+			
+			Push		MIN_VEL
+			Push		MAX_VEL
+			CallHost	GetRandomNumber
+			Mov		YVel, _RetVal
+
+			Mov		Aliens [ CurrArrayIndex ], XVel
+			Inc		CurrArrayIndex
+			Mov		Aliens [ CurrArrayIndex ], YVel
+			Inc		CurrArrayIndex
+			
+			; Set the spin direction
+			
+			Push		0
+			Push		2
+			CallHost	GetRandomNumber
+			Mov		SpinDir, _RetVal
+			
+			Mov		Aliens [ CurrArrayIndex ], SpinDir
+			Inc		CurrArrayIndex
+			
+			; ---- Move to the next alien
+		
+			Inc		CurrAlienIndex
+			
+		; Keep looping until the last alien is reached
+			
+		JL		CurrAlienIndex, ALIEN_COUNT, InitLoopStart
+	}
+	
+	; ---- Handles the current frame
+	
+	Func HandleFrame
+	{
+		; ---- Declare locals
+		
+		; Counters
+		
+		Var CurrAlienIndex
+		Var CurrArrayIndex
+		
+		; Alien element fields
+		
+		Var X
+		Var Y
+		Var XVel
+		Var YVel
+		Var SpinDir
+		
+		; Animation
+		
+		Var FinalAnimFrame
+		Var AnimTimerState
+		Var MoveTimerState
+		
+		; Collision
+		
+		Var BoundX
+		Var BoundY
+	
+		; ---- Blit the background image
+	
+		CallHost	BlitBG
+		
+		; ---- Blit each sprite
+
+		Mov		CurrAlienIndex, 0
+		Mov		CurrArrayIndex, 0
+		
+		DrawLoopStart:
+		
+			; Get the X, Y location
+			
+			Mov		X, Aliens [ CurrArrayIndex ]
+			Inc		CurrArrayIndex
+			Mov		Y, Aliens [ CurrArrayIndex ]
+
+			; Get the spin direction and determine the final frame for this sprite
+			; based on it
+
+			Add		CurrArrayIndex, 3			
+			Mov		SpinDir, Aliens [ CurrArrayIndex ]
+			Inc		CurrArrayIndex
+			JE		SpinDir, 1, InvertFrame
+			Mov		FinalAnimFrame, CurrAnimFrame
+			Jmp		SkipInvertFrame
+			
+		InvertFrame:
+		
+			Mov		FinalAnimFrame, ALIEN_MAX_FRAME
+			Sub		FinalAnimFrame, CurrAnimFrame
+			
+		SkipInvertFrame:
+			
+			; Blit the sprite
+
+			Push		FinalAnimFrame
+			Push		X
+			Push		Y
+			CallHost	BlitSprite		
+			
+			; Move to the next alien
+		
+			Inc		CurrAlienIndex
+			
+		; Keep looping until the last alien is reached
+		
+		JL		CurrAlienIndex, ALIEN_COUNT, DrawLoopStart
+
+		; ---- Blit the completed frame to the screen
+
+		CallHost	BlitFrame
+		
+		; ---- Increment the current frame in the animation
+		
+		Push		ANIM_TIMER_INDEX
+		CallHost	GetTimerState
+		JE		_RetVal, 0, SkipIncFrame
+
+		Inc		CurrAnimFrame
+		JL		CurrAnimFrame, ALIEN_MAX_FRAME, SkipWrapFrame
+		Mov		CurrAnimFrame, 0
+
+	SkipWrapFrame:
+	SkipIncFrame:
+		
+		; ---- Move the sprites along their paths
+
+		Push		MOVE_TIMER_INDEX
+		CallHost	GetTimerState
+		JE		_RetVal, 0, SkipMoveSprites
+
+		Mov		CurrAlienIndex, 0
+		Mov		CurrArrayIndex, 0
+
+		MoveLoopStart:
+			
+			; Save the base array index of the element so we can access it later
+			
+			Push		CurrArrayIndex
+			
+			; ---- Update the sprites
+		
+			; Get the X, Y location
+			
+			Mov		X, Aliens [ CurrArrayIndex ]
+			Inc		CurrArrayIndex
+			Mov		Y, Aliens [ CurrArrayIndex ]
+			Inc		CurrArrayIndex
+
+			; Get the X and Y velocities
+			
+			Mov		XVel, Aliens [ CurrArrayIndex ]
+			Inc		CurrArrayIndex
+			Mov		YVel, Aliens [ CurrArrayIndex ]
+			Inc		CurrArrayIndex
+			
+			Add		X, XVel
+			Add		Y, YVel
+			
+			; ---- Determine if a boundary was hit
+			
+			Mov		BoundX, 0
+			Sub		BoundX, HALF_ALIEN_WIDTH
+			JG		X, BoundX, SkipX0VelFlip
+			Neg		XVel
+			
+		SkipX0VelFlip:
+			
+			Mov		BoundX, 640
+			Sub		BoundX, HALF_ALIEN_WIDTH
+			JL		X, BoundX, SkipX1VelFlip
+			Neg		XVel
+			
+		SkipX1VelFlip:
+		
+			Mov		BoundY, 0
+			Sub		BoundY, HALF_ALIEN_HEIGHT
+			JG		Y, BoundY, SkipY0VelFlip
+			Neg		YVel
+			
+		SkipY0VelFlip:
+			
+			Mov		BoundY, 480
+			Sub		BoundY, HALF_ALIEN_HEIGHT
+			JL		Y, BoundY, SkipY1VelFlip
+			Neg		YVel
+			
+		SkipY1VelFlip:
+			
+			; --- Restore the base index and write the updated values
+			
+			Pop		CurrArrayIndex
+			
+			Mov		Aliens [ CurrArrayIndex ], X
+			Inc		CurrArrayIndex
+			Mov		Aliens [ CurrArrayIndex ], Y
+			Inc		CurrArrayIndex
+
+			Mov		Aliens [ CurrArrayIndex ], XVel
+			Inc		CurrArrayIndex
+			Mov		Aliens [ CurrArrayIndex ], YVel
+			Add		CurrArrayIndex, 2
+	
+			; Move to the next alien
+		
+			Inc		CurrAlienIndex
+			
+		; Keep looping until the last alien is reached
+		
+		JL		CurrAlienIndex, ALIEN_COUNT, MoveLoopStart
+		
+	SkipMoveSprites:
+
+	}
